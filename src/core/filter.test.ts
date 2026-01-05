@@ -1,0 +1,211 @@
+import { test, expect, describe } from "vitest";
+import {
+  getDisplayValue,
+  canModify,
+  canSee,
+  filterForAI,
+  generateAIEnvContent,
+  validateModification,
+  getVariableForAI,
+} from "./filter";
+import { AccessLevel, type Manifest, type VariableConfig } from "./types";
+
+describe("getDisplayValue", () => {
+  test("returns actual value for FULL access", () => {
+    const config: VariableConfig = { access: AccessLevel.FULL };
+    expect(getDisplayValue("KEY", "secret", config)).toBe("secret");
+  });
+
+  test("returns actual value for READ_ONLY access", () => {
+    const config: VariableConfig = { access: AccessLevel.READ_ONLY };
+    expect(getDisplayValue("KEY", "value", config)).toBe("value");
+  });
+
+  test("returns pattern for READ_ONLY with pattern", () => {
+    const config: VariableConfig = { access: AccessLevel.READ_ONLY, pattern: "sk-***" };
+    expect(getDisplayValue("KEY", "sk-actual", config)).toBe("sk-***");
+  });
+
+  test("returns placeholder for PLACEHOLDER access", () => {
+    const config: VariableConfig = { access: AccessLevel.PLACEHOLDER };
+    expect(getDisplayValue("API_KEY", "secret", config)).toBe("<API_KEY>");
+  });
+
+  test("returns schema representation for SCHEMA_ONLY", () => {
+    const config: VariableConfig = {
+      access: AccessLevel.SCHEMA_ONLY,
+      schema: { type: "url", protocol: "https" },
+    };
+    const result = getDisplayValue("URL", "https://secret.com", config);
+    expect(result).toContain("type:");
+    expect(result).toContain("protocol:");
+  });
+
+  test("returns empty string for HIDDEN access", () => {
+    const config: VariableConfig = { access: AccessLevel.HIDDEN };
+    expect(getDisplayValue("SECRET", "value", config)).toBe("");
+  });
+
+  test("uses default value when value is undefined", () => {
+    const config: VariableConfig = { access: AccessLevel.FULL, default: "default_value" };
+    expect(getDisplayValue("KEY", undefined, config)).toBe("default_value");
+  });
+});
+
+describe("canModify", () => {
+  test("returns true for FULL access", () => {
+    expect(canModify(AccessLevel.FULL)).toBe(true);
+  });
+
+  test("returns false for READ_ONLY access", () => {
+    expect(canModify(AccessLevel.READ_ONLY)).toBe(false);
+  });
+
+  test("returns false for PLACEHOLDER access", () => {
+    expect(canModify(AccessLevel.PLACEHOLDER)).toBe(false);
+  });
+
+  test("returns false for HIDDEN access", () => {
+    expect(canModify(AccessLevel.HIDDEN)).toBe(false);
+  });
+});
+
+describe("canSee", () => {
+  test("returns true for FULL access", () => {
+    expect(canSee(AccessLevel.FULL)).toBe(true);
+  });
+
+  test("returns true for READ_ONLY access", () => {
+    expect(canSee(AccessLevel.READ_ONLY)).toBe(true);
+  });
+
+  test("returns true for PLACEHOLDER access", () => {
+    expect(canSee(AccessLevel.PLACEHOLDER)).toBe(true);
+  });
+
+  test("returns false for HIDDEN access", () => {
+    expect(canSee(AccessLevel.HIDDEN)).toBe(false);
+  });
+});
+
+describe("filterForAI", () => {
+  test("excludes HIDDEN variables", () => {
+    const manifest: Manifest = {
+      version: 1,
+      variables: {
+        VISIBLE: { access: AccessLevel.FULL },
+        HIDDEN_VAR: { access: AccessLevel.HIDDEN },
+      },
+    };
+    const env = { VISIBLE: "yes", HIDDEN_VAR: "secret" };
+    const result = filterForAI(env, manifest);
+    expect(result.find((v) => v.key === "HIDDEN_VAR")).toBeUndefined();
+    expect(result.find((v) => v.key === "VISIBLE")).toBeDefined();
+  });
+
+  test("includes variables with correct display values", () => {
+    const manifest: Manifest = {
+      version: 1,
+      variables: {
+        FULL_VAR: { access: AccessLevel.FULL },
+        PLACEHOLDER_VAR: { access: AccessLevel.PLACEHOLDER },
+      },
+    };
+    const env = { FULL_VAR: "actual", PLACEHOLDER_VAR: "secret" };
+    const result = filterForAI(env, manifest);
+
+    const fullVar = result.find((v) => v.key === "FULL_VAR");
+    expect(fullVar?.displayValue).toBe("actual");
+
+    const placeholderVar = result.find((v) => v.key === "PLACEHOLDER_VAR");
+    expect(placeholderVar?.displayValue).toBe("<PLACEHOLDER_VAR>");
+  });
+
+  test("adds unclassified env vars with placeholder access", () => {
+    const manifest: Manifest = { version: 1, variables: {} };
+    const env = { UNKNOWN: "value" };
+    const result = filterForAI(env, manifest);
+    expect(result[0].access).toBe(AccessLevel.PLACEHOLDER);
+    expect(result[0].displayValue).toBe("<UNKNOWN>");
+  });
+
+  test("sorts results alphabetically", () => {
+    const manifest: Manifest = { version: 1, variables: {} };
+    const env = { ZEBRA: "z", ALPHA: "a", MIDDLE: "m" };
+    const result = filterForAI(env, manifest);
+    expect(result.map((v) => v.key)).toEqual(["ALPHA", "MIDDLE", "ZEBRA"]);
+  });
+});
+
+describe("generateAIEnvContent", () => {
+  test("generates header comments", () => {
+    const content = generateAIEnvContent([]);
+    expect(content).toContain("# Generated by aienv");
+  });
+
+  test("generates variable lines with access tags", () => {
+    const variables = [
+      {
+        key: "DEBUG",
+        displayValue: "true",
+        access: AccessLevel.FULL,
+        canModify: true,
+      },
+    ];
+    const content = generateAIEnvContent(variables);
+    expect(content).toContain("DEBUG=true");
+    expect(content).toContain("[full]");
+  });
+});
+
+describe("validateModification", () => {
+  test("allows modification for FULL access", () => {
+    const manifest: Manifest = {
+      version: 1,
+      variables: { EDITABLE: { access: AccessLevel.FULL } },
+    };
+    expect(validateModification("EDITABLE", manifest).allowed).toBe(true);
+  });
+
+  test("denies modification for READ_ONLY access", () => {
+    const manifest: Manifest = {
+      version: 1,
+      variables: { READONLY: { access: AccessLevel.READ_ONLY } },
+    };
+    const result = validateModification("READONLY", manifest);
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toContain("read-only");
+  });
+
+  test("denies access for HIDDEN variables", () => {
+    const manifest: Manifest = {
+      version: 1,
+      variables: { HIDDEN: { access: AccessLevel.HIDDEN } },
+    };
+    const result = validateModification("HIDDEN", manifest);
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toContain("hidden");
+  });
+});
+
+describe("getVariableForAI", () => {
+  test("returns variable info for visible variables", () => {
+    const manifest: Manifest = {
+      version: 1,
+      variables: { VAR: { access: AccessLevel.FULL, description: "Test" } },
+    };
+    const result = getVariableForAI("VAR", { VAR: "value" }, manifest);
+    expect(result).not.toBeNull();
+    expect(result?.key).toBe("VAR");
+    expect(result?.displayValue).toBe("value");
+  });
+
+  test("returns null for hidden variables", () => {
+    const manifest: Manifest = {
+      version: 1,
+      variables: { SECRET: { access: AccessLevel.HIDDEN } },
+    };
+    const result = getVariableForAI("SECRET", { SECRET: "value" }, manifest);
+    expect(result).toBeNull();
+  });
+});

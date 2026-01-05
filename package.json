@@ -1,0 +1,38 @@
+{
+  "name": "aienv-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for aienv - granular AI access control for environment variables",
+  "type": "module",
+  "bin": {
+    "aienv-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target node",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "bun run build"
+  },
+  "keywords": [
+    "mcp",
+    "claude",
+    "ai",
+    "env",
+    "environment",
+    "dotenv",
+    "security"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^3.0.0"
+  }
+}
