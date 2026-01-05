@@ -192,6 +192,12 @@ export async function configureClaudeSettings(silent = false): Promise<Configure
     } else {
       console.log("     Already configured");
     }
+
+    // Post-setup recommendations
+    console.log("");
+    console.log("  Recommended next steps:");
+    console.log("    → Add to .gitignore: .env.ai");
+    console.log("    → Review settings: npm i -g envibe && envibe view");
   }
 
   return { denyAdded, allowAdded, mcpConfigured, discoveredFiles };

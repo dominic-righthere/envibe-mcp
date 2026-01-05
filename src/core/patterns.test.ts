@@ -49,21 +49,25 @@ describe("classifyVariable", () => {
     test("classifies GITHUB_TOKEN as PLACEHOLDER", () => {
       expect(classifyVariable("GITHUB_TOKEN")?.access).toBe(AccessLevel.PLACEHOLDER);
     });
+
+    test("classifies DATABASE_URL as PLACEHOLDER (may contain password)", () => {
+      expect(classifyVariable("DATABASE_URL")?.access).toBe(AccessLevel.PLACEHOLDER);
+    });
+
+    test("classifies REDIS_URL as PLACEHOLDER (may contain password)", () => {
+      expect(classifyVariable("REDIS_URL")?.access).toBe(AccessLevel.PLACEHOLDER);
+    });
+
+    test("classifies MONGODB_URI as PLACEHOLDER (may contain password)", () => {
+      expect(classifyVariable("MONGODB_URI")?.access).toBe(AccessLevel.PLACEHOLDER);
+    });
+
+    test("classifies CONNECTION_STRING as PLACEHOLDER (may contain password)", () => {
+      expect(classifyVariable("CONNECTION_STRING")?.access).toBe(AccessLevel.PLACEHOLDER);
+    });
   });
 
   describe("READ_ONLY patterns", () => {
-    test("classifies DATABASE_URL as READ_ONLY", () => {
-      expect(classifyVariable("DATABASE_URL")?.access).toBe(AccessLevel.READ_ONLY);
-    });
-
-    test("classifies REDIS_URL as READ_ONLY", () => {
-      expect(classifyVariable("REDIS_URL")?.access).toBe(AccessLevel.READ_ONLY);
-    });
-
-    test("classifies MONGODB_URI as READ_ONLY", () => {
-      expect(classifyVariable("MONGODB_URI")?.access).toBe(AccessLevel.READ_ONLY);
-    });
-
     test("classifies API_URL as READ_ONLY", () => {
       expect(classifyVariable("API_URL")?.access).toBe(AccessLevel.READ_ONLY);
     });
