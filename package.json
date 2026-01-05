@@ -1,10 +1,10 @@
 {
-  "name": "aienv-mcp",
+  "name": "envibe-mcp",
   "version": "0.1.0",
-  "description": "MCP server for aienv - granular AI access control for environment variables",
+  "description": "MCP server for envibe - the missing permission layer between AI agents and your .env",
   "type": "module",
   "bin": {
-    "aienv-mcp": "./dist/index.js"
+    "envibe-mcp": "./dist/index.js"
   },
   "files": [
     "dist"

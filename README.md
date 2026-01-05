@@ -1,9 +1,9 @@
-# aienv-mcp
+# envibe-mcp
 
-[![npm version](https://img.shields.io/npm/v/aienv-mcp.svg)](https://www.npmjs.com/package/aienv-mcp)
+[![npm version](https://img.shields.io/npm/v/envibe-mcp.svg)](https://www.npmjs.com/package/envibe-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**MCP server for aienv** - granular AI access control for environment variables.
+**MCP server for envibe** - the missing permission layer between AI agents and your .env.
 
 ## Install
 
@@ -12,9 +12,9 @@ Add to your AI tool's MCP config:
 ```json
 {
   "mcpServers": {
-    "aienv": {
+    "envibe": {
       "command": "npx",
-      "args": ["aienv-mcp"]
+      "args": ["envibe-mcp"]
     }
   }
 }
@@ -24,7 +24,7 @@ Add to your AI tool's MCP config:
 <summary><b>Claude Code</b></summary>
 
 ```bash
-claude mcp add aienv npx aienv-mcp
+claude mcp add envibe npx envibe-mcp
 ```
 </details>
 
@@ -39,17 +39,17 @@ Add to `claude_desktop_config.json`:
 <details>
 <summary><b>VS Code / Cursor / Windsurf</b></summary>
 
-Add to your editor's MCP settings (see main [aienv](https://github.com/dominic-righthere/aienv) docs for details).
+Add to your editor's MCP settings (see main [envibe](https://github.com/dominic-righthere/envibe) docs for details).
 </details>
 
-On first run, aienv automatically:
+On first run, envibe automatically:
 1. Creates `.env.manifest.yaml` from your `.env.example`
 2. Generates `.env.ai` (filtered view for AI)
 3. Blocks direct `.env` file access
 
 ## What is this?
 
-This is the MCP server component of [aienv](https://github.com/dominic-righthere/aienv). It gives AI coding assistants controlled access to your environment variables with 5 access levels:
+This is the MCP server component of [envibe](https://github.com/dominic-righthere/envibe). It gives AI coding assistants controlled access to your environment variables with 5 access levels:
 
 | Level | AI Can See | AI Can Modify |
 |-------|-----------|---------------|
@@ -70,10 +70,10 @@ This is the MCP server component of [aienv](https://github.com/dominic-righthere
 
 ## For CLI tools
 
-If you need CLI commands like `aienv setup -i` (interactive mode), `aienv view`, or `aienv generate`, install the full package:
+If you need CLI commands like `envibe setup -i` (interactive mode), `envibe view`, or `envibe generate`, install the full package:
 
 ```bash
-npm install -g aienv
+npm install -g envibe
 ```
 
 ## License
