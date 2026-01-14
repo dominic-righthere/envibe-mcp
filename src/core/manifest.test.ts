@@ -139,7 +139,7 @@ describe("serializeManifest", () => {
   test("includes header comments", () => {
     const manifest = { version: 1, variables: {} };
     const yaml = serializeManifest(manifest);
-    expect(yaml).toContain("# aienv manifest");
+    expect(yaml).toContain("# envibe manifest");
     expect(yaml).toContain("# Access levels:");
   });
 

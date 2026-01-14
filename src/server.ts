@@ -133,8 +133,8 @@ async function ensureSetup(): Promise<Manifest> {
 export async function startMCPServer(): Promise<void> {
   const server = new Server(
     {
-      name: "aienv",
-      version: "0.1.0",
+      name: "envibe",
+      version: "0.2.2",
     },
     {
       capabilities: {

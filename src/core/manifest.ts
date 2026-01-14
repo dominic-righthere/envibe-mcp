@@ -77,7 +77,7 @@ export function serializeManifest(manifest: Manifest): string {
   });
 
   // Add helpful comments
-  const header = `# aienv manifest - AI access control for environment variables
+  const header = `# envibe manifest - AI access control for environment variables
 # Access levels:
 #   full        - AI can see and modify the value
 #   read-only   - AI can see but not modify
