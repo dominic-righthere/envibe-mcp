@@ -1,6 +1,7 @@
 {
   "name": "envibe-mcp",
-  "version": "0.2.5",
+  "version": "0.2.7",
+  "mcpName": "io.github.dominic-righthere/envibe",
   "description": "MCP server for envibe - the missing permission layer between AI agents and your .env",
   "type": "module",
   "bin": {
