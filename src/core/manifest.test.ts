@@ -70,6 +70,40 @@ variables:
     expect(config.pattern).toBe("sk-***");
   });
 
+  test("parses format and example fields", () => {
+    const yaml = `
+version: 1
+variables:
+  API_URL:
+    access: full
+    description: "API endpoint URL"
+    format: url
+    example: "https://api.example.com/v1"
+`;
+    const manifest = parseManifest(yaml);
+    const config = manifest.variables.API_URL;
+    expect(config.format).toBe("url");
+    expect(config.example).toBe("https://api.example.com/v1");
+  });
+
+  test("round-trips format and example through serialize", () => {
+    const original = {
+      version: 1,
+      variables: {
+        API_URL: {
+          access: AccessLevel.FULL,
+          description: "API endpoint",
+          format: "url",
+          example: "https://api.example.com",
+        },
+      },
+    };
+    const yaml = serializeManifest(original);
+    const parsed = parseManifest(yaml);
+    expect(parsed.variables.API_URL.format).toBe("url");
+    expect(parsed.variables.API_URL.example).toBe("https://api.example.com");
+  });
+
   test("defaults version to 1 when missing", () => {
     const yaml = `
 variables:

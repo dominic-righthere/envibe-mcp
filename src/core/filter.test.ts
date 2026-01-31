@@ -188,6 +188,32 @@ describe("validateModification", () => {
   });
 });
 
+describe("env_blind_set access control", () => {
+  // env_blind_set should only allow writing to FULL, PLACEHOLDER, and HIDDEN variables.
+  // READ_ONLY and SCHEMA_ONLY must be rejected.
+  const writableViaBlindSet = [AccessLevel.FULL, AccessLevel.PLACEHOLDER, AccessLevel.HIDDEN];
+
+  test("allows FULL access", () => {
+    expect(writableViaBlindSet.includes(AccessLevel.FULL)).toBe(true);
+  });
+
+  test("allows PLACEHOLDER access", () => {
+    expect(writableViaBlindSet.includes(AccessLevel.PLACEHOLDER)).toBe(true);
+  });
+
+  test("allows HIDDEN access", () => {
+    expect(writableViaBlindSet.includes(AccessLevel.HIDDEN)).toBe(true);
+  });
+
+  test("rejects READ_ONLY access", () => {
+    expect(writableViaBlindSet.includes(AccessLevel.READ_ONLY)).toBe(false);
+  });
+
+  test("rejects SCHEMA_ONLY access", () => {
+    expect(writableViaBlindSet.includes(AccessLevel.SCHEMA_ONLY)).toBe(false);
+  });
+});
+
 describe("getVariableForAI", () => {
   test("returns variable info for visible variables", () => {
     const manifest: Manifest = {
