@@ -150,6 +150,7 @@ Use these tools when working with .env files or environment configuration:
 - env_blind_set: Set a variable without reading it (use when user provides value for hidden/placeholder vars)
 - env_describe: Get metadata about a variable (format, required, etc.)
 - env_check_required: Find missing required variables
+- env_check_gitignore: Validate .gitignore excludes .env files (except .env.example)
 
 Access levels: full (read/write), read-only, placeholder (name only), hidden (blocked).`,
     }
@@ -243,6 +244,15 @@ Access levels: full (read/write), read-only, placeholder (name only), hidden (bl
               },
             },
             required: ["key", "value"],
+          },
+        },
+        {
+          name: "env_check_gitignore",
+          description:
+            "Validate that .gitignore is properly configured to exclude .env files. Checks for required patterns: .env, .env.*, and !.env.example exception.",
+          inputSchema: {
+            type: "object" as const,
+            properties: {},
           },
         },
       ],
@@ -549,6 +559,75 @@ Access levels: full (read/write), read-only, placeholder (name only), hidden (bl
                 }, null, 2),
               },
             ],
+          };
+        }
+
+        case "env_check_gitignore": {
+          const issues: string[] = [];
+          const passed: string[] = [];
+
+          // Check if .gitignore exists
+          let gitignoreContent: string;
+          try {
+            gitignoreContent = await fs.readFile(".gitignore", "utf-8");
+            passed.push(".gitignore file exists");
+          } catch {
+            return {
+              content: [
+                {
+                  type: "text" as const,
+                  text: JSON.stringify({
+                    valid: false,
+                    issues: [".gitignore file not found"],
+                    passed: [],
+                    message: "Create a .gitignore file with proper .env exclusions.",
+                  }, null, 2),
+                },
+              ],
+              isError: true,
+            };
+          }
+
+          const lines = gitignoreContent.split("\n").map(l => l.trim());
+
+          // Check for .env
+          if (lines.includes(".env")) {
+            passed.push(".env is ignored");
+          } else {
+            issues.push("Missing '.env' pattern");
+          }
+
+          // Check for .env.*
+          if (lines.includes(".env.*")) {
+            passed.push(".env.* is ignored");
+          } else {
+            issues.push("Missing '.env.*' pattern");
+          }
+
+          // Check for !.env.example exception
+          if (lines.includes("!.env.example")) {
+            passed.push("!.env.example exception present");
+          } else {
+            issues.push("Missing '!.env.example' exception");
+          }
+
+          const valid = issues.length === 0;
+
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: JSON.stringify({
+                  valid,
+                  issues,
+                  passed,
+                  message: valid
+                    ? "✓ .gitignore is properly configured"
+                    : `Found ${issues.length} issue(s). Add the missing patterns to .gitignore.`,
+                }, null, 2),
+              },
+            ],
+            isError: !valid,
           };
         }
 
